@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <io.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -34,4 +34,4 @@ int main(int argc,char *argv[])
 			}
 			close(fd);
 		}
-}hoge 
+}
