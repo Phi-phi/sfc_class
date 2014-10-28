@@ -10,7 +10,6 @@ int main(int argc,char *argv[])
 	int kc;
 	char keydata[1];
 	char dispdata[1024];
-	char* disp;
 	int count=0;
 
 	if(argc==1)
@@ -20,8 +19,7 @@ int main(int argc,char *argv[])
 				dispdata[count] = keydata[0];
 				count++;
 				if(keydata[0] == '\n'){
-					disp = dispdata;
-					write(1,disp,count);
+					write(1,dispdata,count);
 					count=0;
 				}
 			}
