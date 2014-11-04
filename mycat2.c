@@ -1,50 +1,42 @@
 #include <io.h>
 #include <fcntl.h>
-#include <stdlib.h>
 
-int main(int argc,char *argv[])
-{
-	char buf[1024];
+int my_strlen(const char *str){
+	int i = 0; 
+
+	while(*str++) i++;
+	return(i);
+}
+
+int writestr(const char* str){
+	int i = my_strlen(str);
+	write(1, str, i);
+}
+
+int main(int argc, char *argv[]){
+	char *buf[1024];
 	int fd;
 	int rc;
 	int kc;
-	char keydata[1];
-	char dispdata[1024];
-	int count=0;
+	int count = 0;
 
-	if(argc==1)
-	{
-		while(1){
-			if((kc = read(0,keydata,1)) != -1){
-				dispdata[count] = keydata[0];
-				count++;
-				if(keydata[0] == '\n'){
-					write(1,dispdata,count);
-					count=0;
-				}
-			}
-			
+	if(argc == 1){
+		while((kc = read(0, buf, 512)) > 0){
+					write(1, buf, kc);
 		}
-	}//*/
+	}else{
 		int i;
-		for(i=1;i<argc;i++)
-		{
-			if ((fd = open(argv[i],O_RDONLY)) == -1)
-			{
-				write(1,"Error. No such File or directory.\n",32);
-				exit(1);
-			}
-			else
-			{
-				if((rc = read(fd,buf,1024)) != -1)
-				{
-				write(1,buf,rc);
-				}else
-				{
-					write(1,"Error. File can not be read.\n",32);
-					exit(1);
+		for(i = 1; i < argc; i++){
+			if ((fd = open(argv[i], O_RDONLY)) == -1){
+				writestr("Error. No such file or directory.\n");
+			}else{
+					while((rc = read(fd,buf,1024)) > 0){
+						write(1, buf, rc);
+					}
+					if(rc == -1)writestr("Error. File can not be read.\n");
+					close(fd);
 				}
 			}
-			close(fd);
-		}
+	}
+	return 0;
 }
