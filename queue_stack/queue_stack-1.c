@@ -1,58 +1,40 @@
 #include <io.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
 
 struct queue{
-	int *data;
-	size_t start;
-	size_t end;
+	int data[1024];
+	int start;
+	int end;
 };
 
 struct stack{
-	int *data;
-	size_t now;
+	int data[1024];
+	int now;
 };
-
-size_t capacity = 8;
-
-void *realloc(void *ptr, size_t size);
 
 void selectmode();
 
 void initialize_q(struct queue *queue){
 	queue -> start = 0;
 	queue -> end = 0;
-	if((queue -> data = malloc(sizeof(int) * capacity)) == NULL){
-		printf("memory error.\n");
-		exit(1);
+	int i = 0;
+	for(i = 0; i < 1024; i++){
+		queue -> data[i] = 0;
 	}
 	printf("Initialized.\n");
 }
 
 void initialize_s(struct stack *stack){
 	stack -> now = 0;
-	if((stack -> data = malloc(sizeof(int) * capacity)) == NULL){
-		printf("memory error");
-		exit(1);
+	int i = 0;
+	for(i = 0; i < 1024; i++){
+		stack -> data[i] = 0;
 	}
 	printf("Initialized.\n");
 }
 
 void stackset(struct stack *stack){
 	int data;
-	if(stack -> now >= capacity){
-		int *buf;
-		buf = stack -> data;
-		printf("stack is full\n realloc...");
-		capacity *= 2;
-		if((buf = realloc(stack -> data, capacity)) == NULL){
-			printf("memory realloc error\n");
-			exit(1);
-		}
-		free(stack -> data);
-		stack -> data = buf;
-	}
 	printf("Stack: Please set data.\n");
 	scanf("%d", &data);
 	stack -> data[stack -> now] = data;
@@ -71,19 +53,6 @@ void stackout(struct stack *stack){
 
 void queueset(struct queue *queue){
 	int data;
-	size_t size = queue -> end;
-	int *buf;
-	if(queue -> end >= capacity){
-		printf("queue is full.\nrealloc...\n");
-		buf = queue -> data;
-		capacity *= 2;
-		if((buf = realloc(queue -> data, capacity)) == NULL){
-			printf("memory realloc error");
-			exit(1);
-		}
-		free(queue -> data);
-		queue -> data = buf;
-	}
 	printf("Queue: Plese set data.\n");
 	scanf("%d",&data);
 	queue -> data[queue -> end] = data;
@@ -108,12 +77,10 @@ void Queue_mode(struct queue *q){
 		if(data == 1){
 			queueset(q);
 		}else if(data == 2){
-			free(q -> data);
 			initialize_q(q);
 		}else if(data == 3){
 			queueout(q);
 		}else if(data == 4){
-			free(q -> data);
 			selectmode();
 		}else{
 			printf("error.\n");
@@ -129,12 +96,10 @@ void Stack_mode(struct stack *s){
 		if(data == 1){
 			stackset(s);
 		}else if(data == 2){
-				free(s -> data);
 			initialize_s(s);
 		}else if(data == 3){
 			stackout(s);
 		}else if(data == 4){
-			free(s -> data);
 			selectmode();
 		}else{
 			printf("error.\n");
@@ -163,5 +128,4 @@ void selectmode(){
 
 int main(){
 	selectmode();
-	return 0;
 }
