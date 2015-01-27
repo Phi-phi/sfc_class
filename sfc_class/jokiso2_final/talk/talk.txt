@@ -1,0 +1,9 @@
+send=KAME&recv=KAZU&talk=sample
+send=KAZU&recv=KAME&talk=sample2
+send=Kazuaki&recv=KAME&talk=sample3
+send=Kazuaki&recv=KAZU&talk=sample4
+send=Kazuaki&recv=KAZU&talk=sample5
+send=Kazuaki&recv=KAME&talk=sample4
+send=Kazuaki&recv=KAZU&talk=sample5
+send=Kazuaki&recv=KAZU&talk=talk!
+send=Kazuaki&recv=KAZU&talk=talk2!

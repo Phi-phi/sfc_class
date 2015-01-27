@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Chat</title>
+<style>
+.talk_name{
+	width:50px;
+}
+</style>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script type="text/javascript">
+var myname,setname;
+var username
+var talks = [], my_talks = [];
+var namelist = [];
+
+var sock = io.connect("http://localhost:8213");
+
+sock.on("disconnect", function(client){});
+
+$(document).ready(function(){
+	myname = localStorage.getItem("myname");
+	if(myname == null){
+		setname = prompt("初めての方ですね。\nお名前を入力してください。\n");
+		localStorage.setItem("myname",setname);
+		alert(setname + "さん、こんにちは！");
+		myname = setname;
+		sock.emit("newname",{value: myname});
+		sock.emit("myname", {value: myname});
+		document.getElementById("myname").innerHTML = myname;
+	}else{
+		alert(myname + "さん、こんにちは！");
+		document.getElementById("myname").innerHTML = myname;
+		sock.emit("myname", {value: myname});
+	}
+
+	sock.on("names", function(names){
+		console.log("name,recieved",names);
+		namelist = String(names.value).split("\n");
+		console.log(namelist);
+		$("#names").empty();
+		for(var i = 0; i < namelist.length; ++i){
+			$("#names").append("<option value='" + namelist[i]+ "'>" + namelist[i] + "</option>");
+		}
+	});
+
+});
+
+function talk_send(){
+	var data = $("#sentdata").val();
+	console.log(data);
+	sock.emit("send",{
+		send: myname,
+		recv: username,
+		talk: data
+	});
+}
+
+sock.on("talkdata",function(talk){
+	talks = talk.value;
+	my_talks = [];
+	for(var i = 0; i < talks.length; ++i){
+		if(talks[i].send == myname && talks[i].recv == username){
+			my_talks.unshift(talks[i]);
+			console.log(my_talks);
+		}
+	}
+	indicate();
+});
+
+function indicate(){
+	$(".message").empty();
+	$(".message").append("<tr><td class='talk_name'>名前</td><td class='talk_content'>トーク</td></tr>");
+	for(var i = 0; i < my_talks.length; ++i){
+		if(i > 10) break;
+		$(".message").append("<tr><td class='talk_name'>" + my_talks[i].send + "</td><td class='talk_content'>" + my_talks[i].talk + "</td></tr>");
+	}
+}
+
+function decide(){
+	username = $("#names option:selected").val().replace(/\n/g, "");
+	console.log(username);
+	sock.emit("talk_req",{});
+}
+</script>
+</head>
+<body>
+<h1>chat</h1>
+<h3>ようこそ、<span id="myname"></span>さん</h3>
+<select id="names"></select> <input type='button' value="Decide" onclick="decide();"><br><br>
+	メッセージ: <input type="text" id="sentdata" size="70">
+	<input type="button" value="投稿" onclick="talk_send();">
+<br>
+<hr>
+<br>
+<table class="message">
+</table>
+</body>
+</html>
