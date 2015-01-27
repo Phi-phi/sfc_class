@@ -45,13 +45,20 @@ io.sockets.on("connection", function(sock){
 		}
 	});*/
 	sock.on("newname", function(name){
-		names.push(name.value);
+		fs.appendFile("./talk/talker.txt", "\n" + name.value, function(err){
+			if(err) throw err;
+		});
+		fs.readFile("./talk/talker.txt", "utf-8", function(err, name){
+			console.log(name);
+			io.sockets.emit("names",{value: name});
+		});
+
 	});
 
 	sock.on("send", function(talkobj){
 		var stringdata = qs.stringify(talkobj);
 		console.log(talkobj);
-		fs.appendFile(talkpath, stringdata + "\n", function(err){
+		fs.appendFile(talkpath, "\n" + stringdata, function(err){
 			if(err) throw err;
 		});
 		fs.readFile(talkpath, "utf-8", read_talk);

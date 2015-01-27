@@ -41,10 +41,13 @@ $(document).ready(function(){
 		namelist = String(names.value).split("\n");
 		console.log(namelist);
 		$("#names").empty();
+		$("#names").append("<option value='disable'>---</option>");
 		for(var i = 0; i < namelist.length; ++i){
 			$("#names").append("<option value='" + namelist[i]+ "'>" + namelist[i] + "</option>");
 		}
 	});
+
+	$("#sentdata").attr("disabled","disabled");
 
 });
 
@@ -81,6 +84,8 @@ function indicate(){
 
 function decide(){
 	username = $("#names option:selected").val().replace(/\n/g, "");
+	if(username == myname || username == "disable") $("#sentdata").attr("disabled","disabled").val("IT'S ME!");
+	else $("#sentdata").removeAttr('disabled');
 	console.log(username);
 	sock.emit("talk_req",{});
 }
@@ -90,7 +95,7 @@ function decide(){
 <h1>chat</h1>
 <h3>ようこそ、<span id="myname"></span>さん</h3>
 <select id="names"></select> <input type='button' value="Decide" onclick="decide();"><br><br>
-	メッセージ: <input type="text" id="sentdata" size="70">
+	メッセージ: <input type="text" id="sentdata" size="70" disabled>
 	<input type="button" value="投稿" onclick="talk_send();">
 <br>
 <hr>

@@ -7,3 +7,6 @@ send=Kazuaki&recv=KAME&talk=sample4
 send=Kazuaki&recv=KAZU&talk=sample5
 send=Kazuaki&recv=KAZU&talk=talk!
 send=Kazuaki&recv=KAZU&talk=talk2!
+send=Kazuaki&recv=KAME&talk=talk2!
+send=Kazuaki&recv=KAZU&talk=IT'S%20ME!
+send=Kazuaki&recv=KAME&talk=%3Cmarquee%3E%E0%AA%A6%3D%E0%B9%91%E0%B9%91(%20%E0%A9%AD%20%CE%B5%3A)%E0%A9%AD%E0%A5%81%E2%81%BE%E2%81%BE%EF%BD%BC%EF%BE%9E%EF%BE%80%EF%BE%8A%EF%BE%9E%EF%BE%80%3C%2Fmarquee%3E
