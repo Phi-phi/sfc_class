@@ -5,18 +5,28 @@
 <title>Chat</title>
 <style>
 .talk_name{
-	width:50px;
+	width:150px;
+}
+
+.talk_content{
+	width:600px;
 }
 </style>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script type="text/javascript">
-var myname,setname;
-var username
-var talks = [], my_talks = [];
-var namelist = [];
+var myname,setname; //自分 
+var username //相手
+var talks = [], my_talks = []; //全部トーク and 相手とのだけトーク
+var namelist = []; 
+var lastnum = 0; //参加者人数
+var no_read = {
+	which: true,
+	who: [],
+	num: []
+};
 
-var sock = io.connect("http://localhost:8213");
+var sock = io.connect("localhost:8213");
 
 sock.on("disconnect", function(client){});
 
@@ -28,7 +38,10 @@ $(document).ready(function(){
 		alert(setname + "さん、こんにちは！");
 		myname = setname;
 		sock.emit("newname",{value: myname});
-		sock.emit("myname", {value: myname});
+		sock.on("newname_ok",function(bang){
+			console.log("newname_ok");
+			sock.emit("myname", {value: myname});
+		});
 		document.getElementById("myname").innerHTML = myname;
 	}else{
 		alert(myname + "さん、こんにちは！");
@@ -40,13 +53,21 @@ $(document).ready(function(){
 		console.log("name,recieved",names);
 		namelist = String(names.value).split("\n");
 		console.log(namelist);
+		var buf = lastnum;
+		lastnum = namelist.length;
+		if(buf != 0 && buf < lastnum){
+			alert("New User:" + namelist[lastnum - 1] + " was joined!!");
+		}
 		$("#names").empty();
 		$("#names").append("<option value='disable'>---</option>");
 		for(var i = 0; i < namelist.length; ++i){
 			$("#names").append("<option value='" + namelist[i]+ "'>" + namelist[i] + "</option>");
 		}
+		if(username != ""){
+			$('option[value="'+ username +'"]').attr('selected', 'selected');
+		}
 	});
-
+	sock.emit("talk_req",{});
 	$("#sentdata").attr("disabled","disabled");
 
 });
@@ -57,28 +78,77 @@ function talk_send(){
 	sock.emit("send",{
 		send: myname,
 		recv: username,
-		talk: data
+		talk: data,
+		time:new Date().toLocaleTimeString(),
+		read:false
 	});
 }
 
+
+function inputclear(){
+	$("#sentdata").val("");
+}
+
 sock.on("talkdata",function(talk){
+	console.log("talk reloaded");
 	talks = talk.value;
 	my_talks = [];
+	no_read_check();
 	for(var i = 0; i < talks.length; ++i){
-		if(talks[i].send == myname && talks[i].recv == username){
+		if((talks[i].send == myname && talks[i].recv == username) ||　(talks[i].send == username && talks[i].recv == myname)){
 			my_talks.unshift(talks[i]);
 			console.log(my_talks);
 		}
 	}
+	read_check();
 	indicate();
 });
 
+function no_read_check(){
+	console.log("check start");
+	var n;
+	for(var i = 0; i < talks.length; ++i){
+		if(talks[i].read == void 0) talks[i].read = true; // void 0 == undifined
+		if(talks[i].recv == myname && talks[i].read == "false") {
+			no_read.which = false;
+			console.log("noread");
+			if((n = $.inArray(talks[i].send, no_read.who)) == -1) {
+				no_read.who.push(talks[i].send);
+				n = $.inArray(talks[i].send, no_read.who);
+				no_read.num.push([]);
+			}
+			no_read.num[n].push(i);
+		}
+	}
+
+}
+
 function indicate(){
 	$(".message").empty();
-	$(".message").append("<tr><td class='talk_name'>名前</td><td class='talk_content'>トーク</td></tr>");
+	$("#noread").empty();
+	$(".message").append("<tr><td class='talk_name'>名前</td><td class='talk_content'>トーク</td><td>Time</td></tr>");
 	for(var i = 0; i < my_talks.length; ++i){
 		if(i > 10) break;
-		$(".message").append("<tr><td class='talk_name'>" + my_talks[i].send + "</td><td class='talk_content'>" + my_talks[i].talk + "</td></tr>");
+		if(!my_talks[i].time) my_talks[i].time = 0;
+		$(".message").append("<tr><td class='talk_name'>" + my_talks[i].send + "</td><td class='talk_content'>"
+		 + my_talks[i].talk + "</td><td class='talk_time'>" + my_talks[i].time + "</tr>");
+	}
+	if(!no_read.which){
+		for(var i = 0; i < no_read.who.length; ++i){
+			$("#noread").append(no_read.who[i] + ",");
+		}
+		$("#noread").append("さんからメッセージがあります<br>");
+	}
+}
+
+function read_check(){
+	var i;
+	if((i = $.inArray(username, no_read.who)) != -1){
+		console.log(no_read.who[i],"read");
+		sock.emit("talk_read",{value:no_read.num[i]});
+		no_read.who.splice(i,1);
+		no_read.num.splice(i,1);
+		if(no_read.who.length == 0) no_read.which = true;
 	}
 }
 
@@ -87,16 +157,17 @@ function decide(){
 	if(username == myname || username == "disable") $("#sentdata").attr("disabled","disabled").val("IT'S ME!");
 	else $("#sentdata").removeAttr('disabled');
 	console.log(username);
+	read_check();
 	sock.emit("talk_req",{});
 }
 </script>
 </head>
 <body>
-<h1>chat</h1>
-<h3>ようこそ、<span id="myname"></span>さん</h3>
-<select id="names"></select> <input type='button' value="Decide" onclick="decide();"><br><br>
+<h1>man to man chat</h1>
+<h3>ようこそ、<span id="myname"></span>さん</h3> <span id="noread" style="color:red;"></span>
+<select id="names"></select> <input type='button' value="Decide" onclick="decide();inputclear();"><br><br>
 	メッセージ: <input type="text" id="sentdata" size="70" disabled>
-	<input type="button" value="投稿" onclick="talk_send();">
+	<input type="button" value="投稿" onclick="talk_send();inputclear();decide();">
 <br>
 <hr>
 <br>
