@@ -26,7 +26,7 @@ var no_read = {
 	num: []
 };
 
-var sock = io.connect("localhost:8213");
+var sock = io.connect();
 
 sock.on("disconnect", function(client){});
 
